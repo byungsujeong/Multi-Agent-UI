@@ -1,21 +1,21 @@
-import "./globals.css";
-import Navbar from "../components/Navbar";
-import { AuthProvider } from "../contexts/AuthContext";
+// app/layout.tsx
+import './globals.css';
+import { AuthProvider } from '../contexts/AuthContext';
+import Navbar from '../components/Navbar';
 
 export const metadata = {
-  title: "Next.js Navbar with Login",
-  description: "Simple navigation bar with login state",
+    title: 'MyApp',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>
-        <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
-        </AuthProvider>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+            <body>
+                <AuthProvider>
+                    <Navbar />
+                    {children}
+                </AuthProvider>
+            </body>
+        </html>
+    );
 }

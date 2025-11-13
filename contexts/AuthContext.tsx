@@ -1,31 +1,52 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 interface AuthContextType {
-  isLoggedIn: boolean;
-  login: () => void;
-  logout: () => void;
+    isLoggedIn: boolean;
+    refresh: () => void;
+    logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+    isLoggedIn: false,
+    refresh: () => {},
+    logout: () => {},
+});
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const login = () => setIsLoggedIn(true);
-  const logout = () => setIsLoggedIn(false);
+    const refresh = () => {
+        console.log("[Auth] Checking login status...");
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/authentication/status`, {
+            credentials: "include", // 쿠키 전송
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("[Auth] Status API response:", data);
+                setIsLoggedIn(data.logged_in);
+            })
+            .catch((err) => {
+                console.error("[Auth] Status check failed:", err);
+                setIsLoggedIn(false);
+            });
+    };
 
-  return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+    const logout = () => {
+        console.log("[Auth] Logging out...");
+        // 필요 시 백엔드 로그아웃 API 호출
+        setIsLoggedIn(false);
+    };
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
-}
+    // 초기 상태 확인
+    refresh();
+
+    return (
+        <AuthContext.Provider value={{ isLoggedIn, refresh, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+export const useAuth = () => useContext(AuthContext);
